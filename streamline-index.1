@@ -1,0 +1,90 @@
+.TH STREAMLINE-INDEX 1 "Jan 2026" "streamline-vectors" "User Commands"
+.SH NAME
+streamline-index \- build search index for Streamline icons
+.SH SYNOPSIS
+.B streamline-index
+.RI [ DATA_DIR ]
+.SH DESCRIPTION
+.B streamline-index
+builds an SQLite database index for the Streamline icon collection to enable
+fast searching. The index includes structured information about each icon's
+category, style (if applicable), subcategory, and filename.
+.PP
+The indexing process parses the directory structure to extract:
+.TP
+.B Categories
+Main organizational groups (plump, core, flex, sharp, ultimate, block, etc.)
+.TP
+.B Styles
+Visual style variants (duo, flat, gradient, solid, etc.) for applicable categories
+.TP
+.B Subcategories
+Functional groupings (culture, arrows, interface-essential, leisure/drink-food, etc.)
+.TP
+.B Filenames
+Icon names without the .svg extension
+.SH OPTIONS
+.TP
+.B -c, --content
+Extract content from SVG files (titles, descriptions, etc.) for full-text search.
+This makes indexing slower but enables searching within SVG content.
+.TP
+.B -r, --recursive
+Recursively index all subdirectories. This is the default when no specific
+files or directories are provided.
+.TP
+.B -f, --force
+Overwrite existing index file without prompting.
+.TP
+.B -o, --output FILE
+Specify output path for the index database file.
+.TP
+.B -q, --quiet
+Decrease verbosity. Can be used multiple times.
+.TP
+.B -v, --verbose
+Increase verbosity. Can be used multiple times.
+.TP
+.B -h, --help
+Show help message and exit.
+.TP
+.B --version
+Show version information and exit.
+.TP
+.I FILES/DIR...
+Files and directories to index. If none specified, indexes all icons in the
+default data directory.
+.SH ENVIRONMENT
+.TP
+.B STREAMLINE_DATA_DIR
+Path to the icon data directory (default: /usr/share/streamline-vectors)
+.TP
+.B STREAMLINE_INDEX
+Path where the index database will be created (default: /var/lib/streamline-vectors/index.db)
+.TP
+.B STREAMLINE_INDEX_CONTENT
+Set to "1" to extract and index SVG content (titles, descriptions, etc.) - slower but more comprehensive
+.SH EXAMPLES
+.TP
+Build index with default settings:
+.B streamline-index
+.TP
+Build index for custom data directory:
+.B streamline-index /path/to/icons
+.TP
+Build index with content extraction:
+.B STREAMLINE_INDEX_CONTENT=1 streamline-index
+.SH FILES
+.TP
+.I /var/lib/streamline-vectors/index.db
+SQLite search index database (output)
+.TP
+.I /usr/share/streamline-vectors/
+Icon data directory (input)
+.SH SEE ALSO
+.BR streamline-find (1),
+.BR sqlite3 (1)
+.SH AUTHOR
+Lenik (streamline-find@bodz.net)
+.SH LICENSE
+GPL-3.0+

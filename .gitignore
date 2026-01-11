@@ -1,15 +1,46 @@
-# IDEA/Webstorm project files
-.idea
-*.iml
+# Build artifacts
+*.deb
+*.dsc
+*.changes
+*.build
+*.buildinfo
+build/
+dist/
 
-#VSCode metadata
-.vscode
+**/debian/*.EX
+**/debian/*.after
+**/debian/*.before
+**/debian/*.ex
+**/debian/files
+**/debian/*-stamp
+**/debian/*.substvars
+**/debian/*.debhelper*
+**/debian/streamline-*/
 
-# Mac files
+# Temporary files
+*.tmp
+*.swp
+*.bak
+*~
+
+# Database files (for local testing)
+*.db
+index.db
+
+# OS files
 .DS_Store
-.metals
+Thumbs.db
 
-.env*
-.flaskenv*
-!.env.project
-!.env.vault
+# Editor files
+.vscode/
+.idea/
+*.sublime-*
+
+# Python (if any)
+__pycache__/
+*.pyc
+*.pyo
+
+# Node.js (if any)
+node_modules/
+npm-debug.log*

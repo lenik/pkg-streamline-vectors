@@ -1,0 +1,34 @@
+Source: streamline-vectors
+Section: graphics
+Priority: optional
+Maintainer: Lenik <streamline-find@bodz.net>
+Build-Depends: debhelper-compat (= 13)
+Standards-Version: 4.6.2
+Homepage: https://streamlinehq.com/
+Vcs-Browser: https://github.com/streamlinehq/streamline-vectors
+Vcs-Git: https://github.com/streamlinehq/streamline-vectors.git
+
+Package: streamline-vectors
+Architecture: all
+Depends: ${misc:Depends}
+Description: Free vector icons from Streamline
+ This package contains a comprehensive collection of free vector icons
+ designed by the Streamline professional team. The icons are organized
+ in various categories including core, block, flex, sharp, plump, and more.
+ .
+ All icons are provided in SVG format and are licensed under Creative
+ Commons Attribution 4.0 International (CC BY 4.0).
+
+Package: streamline-find
+Architecture: all
+Depends: ${misc:Depends}, streamline-vectors, sqlite3, bash-completion, bash-shlib
+Description: Command-line tools to search and index Streamline icons
+ This package provides tools for working with the Streamline icon collection:
+ .
+ streamline-find: Search through the icon collection by filename, category,
+ style, or subcategory. Results are ranked by relevance and displayed in
+ descending order of match quality. Uses an SQLite index for fast searching.
+ .
+ streamline-index: Build and maintain the search index for the icon collection.
+ .
+ The search index is included in the package for immediate use.

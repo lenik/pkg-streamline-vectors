@@ -1,0 +1,13 @@
+#!/usr/bin/make -f
+
+%:
+	dh $@
+
+override_dh_install:
+	dh_install
+	# Install all SVG directories to pkgdatadir
+	for dir in block core covid cyber flex freebies-freemojis freehand guidance kameleon logos memes nasty-icons pixel plump sharp stickies ultimate; do \
+		if [ -d $$dir ]; then \
+			dh_install $$dir/* usr/share/streamline-vectors/$$dir/; \
+		fi \
+	done

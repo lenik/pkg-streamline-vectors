@@ -1,0 +1,18 @@
+# Install all icon directories preserving structure
+block/* usr/share/streamline-vectors/block/
+core/* usr/share/streamline-vectors/core/
+covid/* usr/share/streamline-vectors/covid/
+cyber/* usr/share/streamline-vectors/cyber/
+flex/* usr/share/streamline-vectors/flex/
+freebies-freemojis/* usr/share/streamline-vectors/freebies-freemojis/
+freehand/* usr/share/streamline-vectors/freehand/
+guidance/* usr/share/streamline-vectors/guidance/
+kameleon/* usr/share/streamline-vectors/kameleon/
+logos/* usr/share/streamline-vectors/logos/
+memes/* usr/share/streamline-vectors/memes/
+nasty-icons/* usr/share/streamline-vectors/nasty-icons/
+pixel/* usr/share/streamline-vectors/pixel/
+plump/* usr/share/streamline-vectors/plump/
+sharp/* usr/share/streamline-vectors/sharp/
+stickies/* usr/share/streamline-vectors/stickies/
+ultimate/* usr/share/streamline-vectors/ultimate/
