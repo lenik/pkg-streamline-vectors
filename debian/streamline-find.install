@@ -1,0 +1,7 @@
+streamline-find usr/bin/
+streamline-index usr/bin/
+streamline-find.1 usr/share/man/man1/
+streamline-index.1 usr/share/man/man1/
+bash-completion/streamline-find usr/share/bash-completion/completions/
+bash-completion/streamline-index usr/share/bash-completion/completions/
+debian/index.db var/lib/streamline-vectors/

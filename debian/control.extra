@@ -1,0 +1,5 @@
+Package: streamline-find
+Architecture: all
+Depends: ${misc:Depends}, icons-streamline-vectors, sqlite3, bash-completion, bash-shlib
+Description: Command-line tools to search and index Streamline icons
+ streamline-find and streamline-index for the Streamline icon collection.

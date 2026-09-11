@@ -1,0 +1,218 @@
+#!/bin/bash
+
+: ${RCSID:='$Id: - 0.1.0 2026-01-11 21:23:30 - $'}
+: ${PROGRAM_TITLE:="Build search index for Streamline icons"}
+: ${PROGRAM_SYNTAX:="[OPTIONS] [--] [FILES/DIR...]"
+
+    "(Index specified files/directories, or all icons if none specified)"}
+
+# Default locations
+STREAMLINE_DATA_DIR="${STREAMLINE_DATA_DIR:-/usr/share/streamline-vectors}"
+STREAMLINE_INDEX="${STREAMLINE_INDEX:-/var/lib/streamline-vectors/index.db}"
+
+# Option variables
+opt_content=0
+opt_force=0
+opt_recursive=0
+
+. shlib-import cliboot
+option -c --content         "Extract content from SVG files"
+option -r --recursive       "Recursively index all subdirectories"
+option -f --force           "Overwrite existing index"
+option -o --output =FILE    "Output index file (default: /var/lib/streamline-vectors/index.db)"
+option -q --quiet
+option -v --verbose
+option -h --help
+option    --version
+
+function setopt() {
+    case "$1" in
+        -c|--content)
+            opt_content=1;;
+        -r|--recursive)
+            opt_recursive=1;;
+        -f|--force)
+            opt_force=1;;
+        -o|--output)
+            STREAMLINE_INDEX="$2";;
+        -q|--quiet)
+            LOGLEVEL=$((LOGLEVEL - 1));;
+        -v|--verbose)
+            LOGLEVEL=$((LOGLEVEL + 1));;
+        -h|--help)
+            help $1; exit;;
+        --version)
+            show_version; exit;;
+        *)
+            quit "invalid option: $1";;
+    esac
+}
+
+function main() {
+    # Collect remaining arguments as files to index
+    local files=("$@")
+
+    # If no files specified, use default data directory
+    if [ ${#files[@]} -eq 0 ]; then
+        _log1 "No files specified, indexing all icons in $STREAMLINE_DATA_DIR"
+        if [ ! -d "$STREAMLINE_DATA_DIR" ]; then
+            quit "Data directory not found: $STREAMLINE_DATA_DIR"
+        fi
+        files=("$STREAMLINE_DATA_DIR")
+        opt_recursive=1
+    fi
+
+    # Check if all specified paths exist
+    for path in "${files[@]}"; do
+        if [ ! -e "$path" ]; then
+            quit "Path not found: $path"
+        fi
+    done
+
+    # Create index directory if it doesn't exist
+    INDEX_DIR=$(dirname "$STREAMLINE_INDEX")
+    if [ ! -d "$INDEX_DIR" ]; then
+        _log2 "Creating index directory: $INDEX_DIR"
+        mkdir -p "$INDEX_DIR"
+    fi
+
+    if [ -f "$STREAMLINE_INDEX" ] && [ $opt_force -eq 0 ]; then
+        quit "Index already exists: $STREAMLINE_INDEX (use -f to overwrite)"
+    fi
+
+    _log1 "Building index for ${files[*]}"
+    _log2 "Index will be stored at $STREAMLINE_INDEX"
+
+    # Create SQLite database and table
+    _log1 "Creating database and table..."
+    DDL | sqlite3 "$STREAMLINE_INDEX"
+
+    file_count=0
+    for arg in "${files[@]}"; do
+        bulk_import "$arg" 
+    done
+
+    # Populate FTS table
+    _log1 "Building full-text search index..."
+    sqlite3 "$STREAMLINE_INDEX" << 'EOF'
+INSERT INTO icons_fts(rowid, path, filename, dirname, category, style, subcategory, basename, content)
+SELECT id, path, filename, dirname, category, style, subcategory, basename, content FROM icons;
+EOF
+
+    _log1 "Index built successfully!"
+    _log1 "Total icons indexed: $(sqlite3 "$STREAMLINE_INDEX" "SELECT COUNT(*) FROM icons;")"
+}
+
+function bulk_import() {
+    local source="$1"
+
+    # Use a temporary file for bulk import
+    TEMP_FILE=$(mktemp)
+    trap "rm -f $TEMP_FILE" EXIT
+
+    _log1 "Importing icons from $source..."
+
+    # Build SQL insert statements
+    while IFS= read -r -d '' filepath; do
+        _sig1 "    [$file_count] $filepath"
+
+        # Get relative path from data directory
+        relative_path="${filepath#$STREAMLINE_DATA_DIR/}"
+        filename=$(basename "$filepath")
+        dirname=$(dirname "$relative_path")
+        basename="${filename%.svg}"
+
+        # Parse path components: category/[style/]subcategory/name.svg
+        IFS='/' read -ra path_parts <<< "$relative_path"
+        category="${path_parts[0]}"
+
+        # Determine if there's a style component
+        # Some categories have style (like plump/duo/culture/news-paper.svg)
+        # Others don't (like block/leisure/drink-food/coffee.svg)
+        style=""
+        subcategory=""
+        remaining_parts="${path_parts[@]:1:${#path_parts[@]}-2}"  # All parts except first and last
+
+        # Parse path components: category/[style/]subcategory/name.svg
+        # Categories that have style subdirectories: core, plump, flex, sharp, ultimate
+        categories_with_styles="core plump flex sharp ultimate"
+
+        if [[ "$categories_with_styles" == *"$category"* ]]; then
+            # This category has styles: category/style/subcategory/name.svg
+            if [ ${#path_parts[@]} -ge 4 ]; then
+                style="${path_parts[1]}"
+                subcategory_parts=("${path_parts[@]:2:${#path_parts[@]}-3}")
+                subcategory=$(IFS='/'; echo "${subcategory_parts[*]}")
+            fi
+        else
+            # This category doesn't have styles: category/subcategory/name.svg
+            if [ ${#path_parts[@]} -ge 3 ]; then
+                subcategory_parts=("${path_parts[@]:1:${#path_parts[@]}-2}")
+                subcategory=$(IFS='/'; echo "${subcategory_parts[*]}")
+            fi
+        fi
+
+        # Extract content (optional, can be slow for large collections)
+        content=""
+        if [ $opt_content -eq 1 ]; then
+            content=$(extract_svg_content "$filepath" | sed "s/'/''/g")  # Escape single quotes
+        fi
+
+        # Add to temp file for bulk import
+        echo "INSERT OR REPLACE INTO icons (path, filename, dirname, category, style, subcategory, basename, content) VALUES ('$relative_path', '$filename', '$dirname', '$category', '$style', '$subcategory', '$basename', '$content');" >> "$TEMP_FILE"
+
+        ((file_count++))
+    done < <(find "$source" -name "*.svg" -print0)
+
+    # Execute bulk import
+    _log1 "Importing $file_count icons into database..."
+    sqlite3 "$STREAMLINE_INDEX" < "$TEMP_FILE"
+
+    rm -f "$TEMP_FILE"
+}
+
+# Function to extract text content from SVG (basic implementation)
+function extract_svg_content() {
+    local filepath="$1"
+    # Extract text content from SVG (titles, descriptions, etc.)
+    if command -v xmllint >/dev/null 2>&1; then
+        xmllint --xpath "//text() | //title/text() | //desc/text() | //@id | //@class" "$filepath" 2>/dev/null | \
+            sed 's/^[ \t]*//;s/[ \t]*$//' | grep -v '^$' | tr '\n' ' ' || true
+    else
+        # Fallback: basic grep for text content
+        grep -h -o '<text[^>]*>[^<]*</text>' "$filepath" | sed 's/<[^>]*>//g' | tr '\n' ' ' || true
+    fi
+}
+
+function DDL() {
+    cat << 'EOF'
+DROP TABLE IF EXISTS icons;
+CREATE TABLE icons (
+    id INTEGER PRIMARY KEY,
+    path TEXT NOT NULL UNIQUE,
+    filename TEXT NOT NULL,
+    dirname TEXT NOT NULL,
+    category TEXT NOT NULL,
+    style TEXT,
+    subcategory TEXT,
+    basename TEXT NOT NULL,
+    content TEXT
+);
+
+-- Create FTS (Full-Text Search) virtual table for fast searching
+DROP TABLE IF EXISTS icons_fts;
+CREATE VIRTUAL TABLE icons_fts USING fts5(
+    path, filename, dirname, category, style, subcategory, basename, content,
+    content='icons', content_rowid='id'
+);
+
+-- Create indexes for better performance
+CREATE INDEX idx_filename ON icons(filename);
+CREATE INDEX idx_category ON icons(category);
+CREATE INDEX idx_style ON icons(style);
+CREATE INDEX idx_subcategory ON icons(subcategory);
+CREATE INDEX idx_basename ON icons(basename);
+EOF
+}
+
+boot "$@"

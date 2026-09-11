@@ -1,0 +1,275 @@
+#!/bin/bash
+
+: ${RCSID:='$Id: - 0.1.0 2026-01-11 21:23:30 - $'}
+: ${PROGRAM_TITLE:="Search Streamline icon collection"}
+: ${PROGRAM_SYNTAX:="[OPTIONS] [--] QUERY..."
+
+    "(Search for SVG icons in the Streamline collection)"}
+
+LOGLEVEL=0
+
+# Default locations
+STREAMLINE_DATA_DIR="${STREAMLINE_DATA_DIR:-/usr/share/streamline-vectors}"
+STREAMLINE_INDEX="${STREAMLINE_INDEX:-/var/lib/streamline-vectors/index.db}"
+
+. shlib-import cliboot
+option -s --score           "Print rank score"
+option -n --num =NUM        "Print only the first NUM results"
+option -r --reverse         "Reverse the order of the results"
+option -f --full-path       "Print full path"
+option -o --or              "Use OR logic instead of AND for multiple query terms"
+option -i --index =FILE     "Index file to use (default: /var/lib/streamline-vectors/index.db)"
+option -d --data-dir =DIR   "Data directory to use (default: /usr/share/streamline-vectors)"
+option -q --quiet
+option -v --verbose
+option -h --help
+option    --version
+
+opt_show_score=0
+opt_num=0
+opt_reverse=0
+opt_order=ASC
+opt_full_path=0
+opt_or=0
+
+function setopt() {
+    case "$1" in
+        -s|--score)
+            opt_show_score=1;;
+        -n|--num)
+            opt_num=$2;;
+        -r|--reverse)
+            opt_reverse=1
+            opt_order=DESC
+            ;;
+        -f|--full-path)
+            opt_full_path=1;;
+        -o|--or)
+            opt_or=1;;
+        -i|--index)
+            STREAMLINE_INDEX="$2";;
+        -d|--data-dir)
+            STREAMLINE_DATA_DIR="$2";;
+        -q|--quiet)
+            LOGLEVEL=$((LOGLEVEL - 1));;
+        -v|--verbose)
+            LOGLEVEL=$((LOGLEVEL + 1));;
+        -h|--help)
+            help $1; exit;;
+        --version)
+            show_version; exit;;
+        *)
+            quit "invalid option: $1";;
+    esac
+}
+
+function main() {
+    # Check arguments
+    if [ $# -eq 0 ]; then
+        quit "No search query specified"
+    fi
+
+    # Check if index exists, otherwise fall back to filesystem search
+    USE_INDEX=true
+    if [ ! -f "$STREAMLINE_INDEX" ]; then
+        _log1 "Index not found at $STREAMLINE_INDEX, falling back to filesystem search"
+        USE_INDEX=false
+
+        # Check if data directory exists for filesystem search
+        if [ ! -d "$STREAMLINE_DATA_DIR" ]; then
+            quit "Data directory not found: $STREAMLINE_DATA_DIR"
+        fi
+    fi
+
+    _log2 "Search queries: $*"
+    if [ "$USE_INDEX" = true ]; then
+        by-index "$@"
+    else
+        by-filesystem "$@"
+    fi
+}
+
+function by-index() {
+    _log2 "Using SQLite index for search"
+
+    sql_query=$(mk-query "$@")
+    
+    # Execute the query
+      ( echo ".mode list"; echo "$sql_query") \
+    | sqlite3 -separator '|' "$STREAMLINE_INDEX" \
+    | (
+        if [ $opt_show_score -eq 1 ]; then
+            cat
+        else
+            cut -d'|' -f2-
+        fi
+    )
+}
+
+function mk-query() {
+    # Determine logic operator
+    if [ $opt_or -eq 1 ]; then
+        logic_op="OR"
+        logic_desc="OR"
+    else
+        logic_op="AND"
+        logic_desc="AND"
+    fi
+
+    _log2 "Using $logic_desc logic for $# terms"
+
+    # Use enhanced BM25 ranking with basename boost for professional text search
+    # Build FTS query based on AND/OR logic
+    if [ $opt_or -eq 1 ]; then
+        # OR logic: use OR operator
+        fts_query=$(printf '%s OR ' "$@")
+        fts_query=${fts_query% OR }  # Remove trailing OR
+    else
+        # AND logic: use AND operator
+        fts_query=$(printf '%s AND ' "$@")
+        fts_query=${fts_query% AND }  # Remove trailing AND
+    fi
+
+    _log2 "FTS query: $fts_query"
+
+    # Build the SQL query as a string to avoid heredoc issues
+    echo -n "SELECT bm25(icons_fts) + (CASE WHEN ("
+
+    # Add basename conditions
+    i=0
+    for query in "$@"; do
+        if [ $i -gt 0 ]; then
+            echo -n " OR "
+        fi
+        echo -n "LOWER(i.basename) = LOWER('$query')"
+        i=$((i + 1))
+    done
+    echo -n ") THEN -1000.0 ELSE 0 END) as enhanced_score,"
+    if [ "$opt_full_path" -eq 1 ]; then
+        echo -n "'$STREAMLINE_DATA_DIR' || '/' || i.path"
+    else
+        echo -n "i.path"
+    fi
+    echo -n " FROM icons_fts"
+    echo -n " JOIN icons i ON icons_fts.rowid = i.id"
+    echo -n " WHERE icons_fts MATCH '$fts_query'"
+    echo -n " ORDER BY enhanced_score ${opt_order}, LENGTH(i.basename), i.basename"
+    echo ";"
+}
+
+function by-filesystem() {
+    # Fallback: filesystem search with scoring
+    echo "Using filesystem search (consider running 'streamline-index' to build search index)" >&2
+
+    # Function to calculate match score for multiple terms
+    calculate_score() {
+        local filepath="$1"
+        local filename=$(basename "$filepath" .svg)
+        local filename_lower=$(echo "$filename" | tr '[:upper:]' '[:lower:]')
+        local path_lower=$(echo "$filepath" | tr '[:upper:]' '[:lower:]')
+
+        local total_score=0
+        local term_matches=0
+
+        for query in "$@"; do
+            local query_lower=$(echo "$query" | tr '[:upper:]' '[:lower:]')
+            local term_score=0
+
+            # Exact filename match (highest priority)
+            if [ "$filename_lower" = "$query_lower" ]; then
+                term_score=$((term_score + 1000))
+            fi
+
+            # Filename starts with query
+            if [[ "$filename_lower" == "$query_lower"* ]]; then
+                term_score=$((term_score + 500))
+            fi
+
+            # Filename contains query as word boundary
+            if echo "$filename_lower" | grep -q "\b$query_lower\b"; then
+                term_score=$((term_score + 300))
+            fi
+
+            # Filename contains query anywhere
+            if [[ "$filename_lower" == *"$query_lower"* ]]; then
+                term_score=$((term_score + 100))
+            fi
+
+            # Path component matches (directory names)
+            IFS='/' read -ra PATH_PARTS <<< "$filepath"
+            for part in "${PATH_PARTS[@]}"; do
+                part_lower=$(echo "$part" | tr '[:upper:]' '[:lower:]')
+                if [[ "$part_lower" == *"$query_lower"* ]]; then
+                    term_score=$((term_score + 50))
+                    break
+                fi
+            done
+
+            # Check if this term matches (for OR logic)
+            if [ $term_score -gt 0 ]; then
+                term_matches=$((term_matches + 1))
+            fi
+
+            # Add term score to total
+            total_score=$((total_score + term_score))
+        done
+
+        # Apply AND/OR logic
+        if [ $opt_or -eq 1 ]; then
+            # OR logic: require at least one term to match
+            if [ $term_matches -eq 0 ]; then
+                echo 0
+                return
+            fi
+        else
+            # AND logic: require all terms to match
+            if [ $term_matches -lt ${#queries[@]} ]; then
+                echo 0
+                return
+            fi
+        fi
+
+        # Length penalty (shorter names get slight boost)
+        local length_penalty=$(( ${#filename} / 10 ))
+        total_score=$((total_score - length_penalty))
+
+        echo $total_score
+    }
+
+    # Find all SVG files and calculate scores
+    declare -a results
+
+    while IFS= read -r -d '' filepath; do
+        # Remove the data directory prefix for cleaner output
+        relative_path="${filepath#$STREAMLINE_DATA_DIR/}"
+        score=$(calculate_score "$relative_path")
+
+        if [ "$score" -gt 0 ]; then
+            if [ "$opt_full_path" -eq 1 ]; then
+                results+=("$score|$filepath")
+            else
+                results+=("$score|$relative_path")
+            fi
+        fi
+    done < <(find "$STREAMLINE_DATA_DIR" -name "*.svg" -print0)
+
+    # Sort results by score descending and output
+    sortopts=(-t'|' -k1,1nr)
+    if [ $opt_reverse -eq 1 ]; then
+        sortopts+=(-r)
+    fi
+    index=0
+    printf '%s\n' "${results[@]}" | sort "${sortopts@]}" | while IFS='|' read -r score path; do
+        if [ $opt_num -gt 0 ] && [ $index -ge $opt_num ]; then
+            break
+        fi
+        index=$((index + 1))
+        if [ $opt_show_score -eq 1 ]; then
+            printf "%-4d %s\n" "$score" "$path"
+        else
+            printf "%s\n" "$path"
+        fi
+    done
+}
+
+boot "$@"

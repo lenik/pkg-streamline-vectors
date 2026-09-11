@@ -1,0 +1,23 @@
+#!/usr/bin/make -f
+
+%:
+	dh $@
+
+override_dh_install:
+	dh_install
+	# Install SVG family dirs (debian/install lists the same destinations)
+	for dir in block core covid cyber flex freebies-freemojis freehand guidance kameleon logos memes nasty-icons pixel plump sharp stickies ultimate; do \
+		if [ -d orig/$$dir ]; then \
+			dh_install orig/$$dir/* usr/share/icons-streamline-vectors/$$dir/; \
+		fi \
+	done
+
+execute_after_dh_auto_build:
+	iconlib index -o data/preview --name streamline-vectors --title streamline-vectors \
+	  --icons-url-prefix .. --icons-root=orig || true
+
+execute_after_dh_auto_install:
+	if [ -d data/preview ]; then \
+	  install -d debian/icons-streamline-vectors/usr/share/icons-streamline-vectors/preview; \
+	  cp -a data/preview/. debian/icons-streamline-vectors/usr/share/icons-streamline-vectors/preview/; \
+	fi
