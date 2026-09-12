@@ -1,4 +1,4 @@
-# Installed by icons-streamline-vectors — discovered as /usr/share/iconlibutils/library/streamline-vectors/
+# Installed by icons-streamline-vectors as /usr/share/iconlibutils/library/streamline-vectors
 name=streamline-vectors
 type=auto
 path=/usr/share/icons-streamline-vectors
@@ -7,3 +7,5 @@ license=License-see-upstream
 homepage=https://www.streamlinehq.com/
 description=Streamline vector icon collections
 package=icons-streamline-vectors
+icons_root=orig
+faiss_index=/usr/share/icons-streamline-vectors

@@ -1,2 +1,2 @@
 #!/bin/sh
-exec iconlibutils -l streamline-vectors "$@"
+exec iconlib -l streamline-vectors "$@"

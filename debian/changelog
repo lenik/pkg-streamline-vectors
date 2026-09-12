@@ -1,9 +1,7 @@
-streamline-vectors (1.0.0-1) unstable; urgency=medium
+icons-streamline-vectors (1.0.0) unstable; urgency=medium
 
-  * Initial Debian packaging
-  * Include streamline-find and streamline-index tools
-  * Add man pages for both tools
-  * Add bash completion for enhanced usability
-  * Index building is now manual to avoid long installation delays
+  * Packaging as icons-streamline-vectors with iconlibutils launcher.
+  * Install prebuilt index/ web preview and FAISS faiss.* beside icons.
+  * library.iconlib: icons_root + faiss_index for natural-language search.
 
- -- Lenik (谢继雷) <lenik@bodz.net>  Sun, 11 Jan 2026 00:00:00 +0000
+ -- Lenik (谢继雷) <lenik@bodz.net>  Sat, 12 Sep 2026 09:01:35 +0800

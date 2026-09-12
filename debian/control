@@ -1,12 +1,12 @@
 Source: icons-streamline-vectors
 Section: graphics
 Priority: optional
-Maintainer: Lenik <icons-streamline-vectors@bodz.net>
+Maintainer: Lenik (谢继雷) <lenik@bodz.net>
 Build-Depends: debhelper-compat (= 13), meson, ninja-build, python3, iconlibutils
 Standards-Version: 4.6.2
 Homepage: https://www.streamlinehq.com/
-Vcs-Browser: https://github.com/lenik/pkg-icons-streamline-vectors
-Vcs-Git: https://github.com/lenik/pkg-icons-streamline-vectors.git
+Vcs-Browser: https://github.com/lenik/icons-streamline-vectors
+Vcs-Git: https://github.com/lenik/icons-streamline-vectors.git
 Rules-Requires-Root: no
 
 Package: icons-streamline-vectors
@@ -17,7 +17,7 @@ Description: Streamline vector icon collections
  Streamline vector icon collections
  .
  Provides icon assets under /usr/share/icons-streamline-vectors, a preview index, and a
- launcher `icons-streamline-vectors` (`iconlibutils -l streamline-vectors`).
+ launcher `icons-streamline-vectors` (`iconlib -l streamline-vectors`).
 
 Package: streamline-find
 Architecture: all
