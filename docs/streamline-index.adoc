@@ -1,0 +1,89 @@
+= streamline-index(1)
+{project-author} <{project-email}>
+v{project-version}, {project-year}
+:doctype: manpage
+:manmanual: User Commands
+:mansource: streamline-index
+:man-linkstyle: blue R <>
+:nofooter:
+
+== NAME
+
+streamline-index - build search index for Streamline icons
+
+== SYNOPSIS
+
+*streamline-index* [_DATA_DIR_]
+
+== DESCRIPTION
+
+*streamline-index* builds an SQLite database index for the Streamline icon collection to enable fast searching. The index includes structured information about each icon's category, style (if applicable), subcategory, and filename.
+
+The indexing process parses the directory structure to extract:
+
+*Categories*::
+  Main organizational groups (plump, core, flex, sharp, ultimate, block, etc.)
+*Styles*::
+  Visual style variants (duo, flat, gradient, solid, etc.) for applicable categories
+*Subcategories*::
+  Functional groupings (culture, arrows, interface-essential, leisure/drink-food, etc.)
+*Filenames*::
+  Icon names without the .svg extension
+
+== OPTIONS
+
+*-c, --content*::
+  Extract content from SVG files (titles, descriptions, etc.) for full-text search. This makes indexing slower but enables searching within SVG content.
+*-r, --recursive*::
+  Recursively index all subdirectories. This is the default when no specific files or directories are provided.
+*-f, --force*::
+  Overwrite existing index file without prompting.
+*-o, --output FILE*::
+  Specify output path for the index database file.
+*-q, --quiet*::
+  Decrease verbosity. Can be used multiple times.
+*-v, --verbose*::
+  Increase verbosity. Can be used multiple times.
+*-h, --help*::
+  Show help message and exit.
+*--version*::
+  Show version information and exit.
+_FILES/DIR..._::
+  Files and directories to index. If none specified, indexes all icons in the default data directory.
+
+== ENVIRONMENT
+
+*STREAMLINE_DATA_DIR*::
+  Path to the icon data directory (default: /usr/share/streamline-vectors)
+*STREAMLINE_INDEX*::
+  Path where the index database will be created (default: /var/lib/streamline-vectors/index.db)
+*STREAMLINE_INDEX_CONTENT*::
+  Set to "1" to extract and index SVG content (titles, descriptions, etc.) - slower but more comprehensive
+
+== EXAMPLES
+
+Build index with default settings:::
+  *streamline-index*
+Build index for custom data directory:::
+  *streamline-index /path/to/icons*
+Build index with content extraction:::
+  *STREAMLINE_INDEX_CONTENT=1 streamline-index*
+
+== FILES
+
+_/var/lib/streamline-vectors/index.db_::
+  SQLite search index database (output)
+_/usr/share/streamline-vectors/_::
+  Icon data directory (input)
+
+== SEE ALSO
+
+*streamline-find*(1), *sqlite3*(1)
+
+== AUTHOR
+
+Lenik (streamline-find@bodz.net)
+
+== LICENSE
+
+GPL-3.0+

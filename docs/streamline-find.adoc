@@ -1,0 +1,107 @@
+= streamline-find(1)
+{project-author} <{project-email}>
+v{project-version}, {project-year}
+:doctype: manpage
+:manmanual: User Commands
+:mansource: streamline-find
+:man-linkstyle: blue R <>
+:nofooter:
+
+== NAME
+
+streamline-find - search Streamline icon collection
+
+== SYNOPSIS
+
+*streamline-find* _QUERY..._
+
+== DESCRIPTION
+
+*streamline-find* searches through the Streamline icon collection and returns matching SVG pathnames with match rankings. Results are ordered by relevance score in descending order.
+
+The tool uses a SQLite search index when available for fast searching. If no index is found, it falls back to filesystem search (consider running *streamline-index*(1) to build the search index for better performance).
+
+The search supports multiple query types:
+
+*Filename search*::
+  Exact filename matches, prefix matches, and partial matches
+*Category search*::
+  Search by main categories (plump, core, flex, sharp, ultimate, block, etc.)
+*Style search*::
+  Search by visual styles (duo, flat, gradient, solid, etc.) for styled categories
+*Subcategory search*::
+  Search by functional subcategories (culture, arrows, interface-essential, etc.)
+
+== OPTIONS
+
+*-r, --rank*::
+  Print rank score along with each result.
+*-f, --full-path*::
+  Print full absolute path instead of relative path from data directory.
+*-o, --or*::
+  Use OR logic instead of AND for multiple query terms.
+*-i, --index =__FILE__*::
+  Specify the index file to use (default: /var/lib/streamline-vectors/index.db).
+*-d, --data-dir =__DIR__*::
+  Specify the icon data directory to use (default: /usr/share/streamline-vectors).
+*-q, --quiet*::
+  Decrease verbosity. Can be used multiple times.
+*-v, --verbose*::
+  Increase verbosity. Can be used multiple times.
+*-h, --help*::
+  Show help message and exit.
+*--version*::
+  Show version information and exit.
+
+All other arguments are treated as search query terms. By default, multiple terms use AND logic (all terms must match). Use *-o*/*--or* for OR logic (any term must match).
+
+== ENVIRONMENT
+
+*STREAMLINE_INDEX*::
+  Path to the search index database (default: /var/lib/streamline-vectors/index.db)
+*STREAMLINE_DATA_DIR*::
+  Path to the icon data directory (default: /usr/share/streamline-vectors)
+
+== EXAMPLES
+
+Search for arrows:::
+  *streamline-find arrow*
+Search by category:::
+  *streamline-find plump*
+Search by style:::
+  *streamline-find duo*
+Search by subcategory:::
+  *streamline-find culture*
+Search for specific icon:::
+  *streamline-find coffee*
+Search for icons matching both "coffee" AND "bold" (default AND logic):::
+  *streamline-find coffee bold*
+Search for icons matching either "coffee" OR "bold" (OR logic):::
+  *streamline-find -o coffee bold*
+Show ranking scores:::
+  *streamline-find -r coffee*
+Show full absolute paths:::
+  *streamline-find -f coffee*
+Use custom index file:::
+  *streamline-find -i /path/to/custom/index.db coffee*
+Use custom data directory:::
+  *streamline-find -d /path/to/icons coffee*
+
+== FILES
+
+_/var/lib/streamline-vectors/index.db_::
+  SQLite search index (built by streamline-index)
+_/usr/share/streamline-vectors/_::
+  Icon data directory
+
+== SEE ALSO
+
+*streamline-index*(1)
+
+== AUTHOR
+
+Lenik (streamline-find@bodz.net)
+
+== LICENSE
+
+GPL-3.0+

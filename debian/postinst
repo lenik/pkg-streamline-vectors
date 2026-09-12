@@ -1,0 +1,37 @@
+#!/bin/sh
+
+set -e
+
+index_db=/var/lib/streamline-vectors/index.db
+
+case "$1" in
+    configure)
+        if [ ! -e $index_db ]; then
+            # Create index directory
+            mkdir -p /var/lib/streamline-vectors
+
+            # Build search index if streamline-index is available
+            if [ -x /usr/bin/streamline-index ]; then
+                echo "Building Streamline icons search index..."
+                if /usr/bin/streamline-index >/dev/null 2>&1; then
+                    echo "Search index built successfully."
+                else
+                    echo "Warning: Failed to build search index. You can run 'streamline-index' manually."
+                fi
+            fi
+        fi
+        ;;
+    triggered)
+        # Handle triggers if needed for index rebuilding
+        ;;
+    abort-upgrade|abort-remove|abort-deconfigure)
+        ;;
+    *)
+        echo "postinst called with unknown argument \`$1'" >&2
+        exit 1
+        ;;
+esac
+
+#DEBHELPER#
+
+exit 0
