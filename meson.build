@@ -20,12 +20,15 @@ install_data(
   install_dir: ilib_librarydir,
 )
 
+# Icon assets
 if fs.is_dir('data/svg')
   install_subdir('data/svg', install_dir: pkgdatadir, strip_directory: true)
-elif fs.is_dir('orig/.')
-  install_subdir('orig/.', install_dir: pkgdatadir, strip_directory: true)
-elif fs.is_dir('orig') and '.' == '.'
-  foreach sub : ['icons', 'svg', 'SVG', 'SVGs', 'src', 'assets', 'flags']
+elif fs.is_dir('orig')
+  foreach sub : [
+    'block', 'core', 'covid', 'cyber', 'flex', 'freebies-freemojis',
+    'freehand', 'guidance', 'kameleon', 'logos', 'memes', 'nasty-icons',
+    'pixel', 'plump', 'sharp', 'stickies', 'ultimate',
+  ]
     if fs.is_dir('orig' / sub)
       install_subdir('orig' / sub, install_dir: pkgdatadir)
     endif

@@ -1,6 +1,7 @@
 icons-streamline-vectors (1.0.3) unstable; urgency=medium
 
   * Ship streamline-find/index man pages so dh_install succeeds.
+  * Fix Meson/debian install: claim Meson DESTDIR paths; install orig collections not orig/.
 
  -- Lenik (谢继雷) <lenik@bodz.net>  Sat, 12 Sep 2026 10:37:46 +0800
 

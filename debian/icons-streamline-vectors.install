@@ -1,1 +1,4 @@
-bin/icons-streamline-vectors usr/bin/
+# Claim Meson-installed files from debian/tmp (multi-binary source).
+usr/bin/icons-streamline-vectors
+usr/share/icons-streamline-vectors/
+usr/share/iconlibutils/
