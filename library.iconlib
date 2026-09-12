@@ -8,4 +8,5 @@ homepage=https://www.streamlinehq.com/
 description=Streamline vector icon collections
 package=icons-streamline-vectors
 icons_root=orig
-faiss_index=/usr/share/icons-streamline-vectors
+faiss_index=faiss.1,faiss.2,faiss.3,faiss.4,faiss.5,faiss.6,faiss.7,faiss.8,faiss.9,faiss.10,faiss.11,faiss.12,faiss.13,faiss.14,faiss.15
+faiss_shard_size=10M

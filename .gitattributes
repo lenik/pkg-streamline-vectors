@@ -14,4 +14,3 @@
 *.ico binary
 *.mov binary
 *.mp4 binary
-faiss.index filter=lfs diff=lfs merge=lfs -text
