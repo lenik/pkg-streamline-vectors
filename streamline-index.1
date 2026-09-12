@@ -1,0 +1,161 @@
+'\" t
+.\"     Title: streamline-index
+.\"    Author: {project-author} &lt;{project-email}&gt;
+.\" Generator: Asciidoctor 2.0.23
+.\"      Date: 2026-09-12
+.\"    Manual: User Commands
+.\"    Source: streamline-index
+.\"  Language: English
+.\"
+.TH "STREAMLINE\-INDEX" "1" "2026-09-12" "streamline\-index" "User Commands"
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.ss \n[.ss] 0
+.nh
+.ad l
+.de URL
+\fI\\$2\fP <\\$1>\\$3
+..
+.als MTO URL
+.if \n[.g] \{\
+.  mso www.tmac
+.  am URL
+.    ad l
+.  .
+.  am MTO
+.    ad l
+.  .
+.  LINKSTYLE blue R &lt;&gt;
+.\}
+.SH "NAME"
+streamline-index \- build search index for Streamline icons
+.SH "SYNOPSIS"
+.sp
+\fBstreamline\-index\fP [\fIDATA_DIR\fP]
+.SH "DESCRIPTION"
+.sp
+\fBstreamline\-index\fP builds an SQLite database index for the Streamline icon collection to enable fast searching. The index includes structured information about each icon\(cqs category, style (if applicable), subcategory, and filename.
+.sp
+The indexing process parses the directory structure to extract:
+.sp
+\fBCategories\fP
+.RS 4
+Main organizational groups (plump, core, flex, sharp, ultimate, block, etc.)
+.RE
+.sp
+\fBStyles\fP
+.RS 4
+Visual style variants (duo, flat, gradient, solid, etc.) for applicable categories
+.RE
+.sp
+\fBSubcategories\fP
+.RS 4
+Functional groupings (culture, arrows, interface\-essential, leisure/drink\-food, etc.)
+.RE
+.sp
+\fBFilenames\fP
+.RS 4
+Icon names without the .svg extension
+.RE
+.SH "OPTIONS"
+.sp
+\fB\-c, \-\-content\fP
+.RS 4
+Extract content from SVG files (titles, descriptions, etc.) for full\-text search. This makes indexing slower but enables searching within SVG content.
+.RE
+.sp
+\fB\-r, \-\-recursive\fP
+.RS 4
+Recursively index all subdirectories. This is the default when no specific files or directories are provided.
+.RE
+.sp
+\fB\-f, \-\-force\fP
+.RS 4
+Overwrite existing index file without prompting.
+.RE
+.sp
+\fB\-o, \-\-output FILE\fP
+.RS 4
+Specify output path for the index database file.
+.RE
+.sp
+\fB\-q, \-\-quiet\fP
+.RS 4
+Decrease verbosity. Can be used multiple times.
+.RE
+.sp
+\fB\-v, \-\-verbose\fP
+.RS 4
+Increase verbosity. Can be used multiple times.
+.RE
+.sp
+\fB\-h, \-\-help\fP
+.RS 4
+Show help message and exit.
+.RE
+.sp
+\fB\-\-version\fP
+.RS 4
+Show version information and exit.
+.RE
+.sp
+\fIFILES/DIR...\fP
+.RS 4
+Files and directories to index. If none specified, indexes all icons in the default data directory.
+.RE
+.SH "ENVIRONMENT"
+.sp
+\fBSTREAMLINE_DATA_DIR\fP
+.RS 4
+Path to the icon data directory (default: /usr/share/streamline\-vectors)
+.RE
+.sp
+\fBSTREAMLINE_INDEX\fP
+.RS 4
+Path where the index database will be created (default: /var/lib/streamline\-vectors/index.db)
+.RE
+.sp
+\fBSTREAMLINE_INDEX_CONTENT\fP
+.RS 4
+Set to "1" to extract and index SVG content (titles, descriptions, etc.) \- slower but more comprehensive
+.RE
+.SH "EXAMPLES"
+.sp
+Build index with default settings
+.RS 4
+\fBstreamline\-index\fP
+.RE
+.sp
+Build index for custom data directory
+.RS 4
+\fBstreamline\-index /path/to/icons\fP
+.RE
+.sp
+Build index with content extraction
+.RS 4
+\fBSTREAMLINE_INDEX_CONTENT=1 streamline\-index\fP
+.RE
+.SH "FILES"
+.sp
+\fI/var/lib/streamline\-vectors/index.db\fP
+.RS 4
+SQLite search index database (output)
+.RE
+.sp
+\fI/usr/share/streamline\-vectors/\fP
+.RS 4
+Icon data directory (input)
+.RE
+.SH "SEE ALSO"
+.sp
+\fBstreamline\-find\fP(1), \fBsqlite3\fP(1)
+.SH "AUTHOR"
+.sp
+Lenik (\c
+.MTO "streamline\-find\(atbodz.net" "" ")"
+.SH "LICENSE"
+.sp
+GPL\-3.0+
+.SH "AUTHOR"
+.sp
+{project-author} &lt;{project-email}&gt;

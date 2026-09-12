@@ -1,0 +1,200 @@
+'\" t
+.\"     Title: streamline-find
+.\"    Author: {project-author} &lt;{project-email}&gt;
+.\" Generator: Asciidoctor 2.0.23
+.\"      Date: 2026-09-12
+.\"    Manual: User Commands
+.\"    Source: streamline-find
+.\"  Language: English
+.\"
+.TH "STREAMLINE\-FIND" "1" "2026-09-12" "streamline\-find" "User Commands"
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.ss \n[.ss] 0
+.nh
+.ad l
+.de URL
+\fI\\$2\fP <\\$1>\\$3
+..
+.als MTO URL
+.if \n[.g] \{\
+.  mso www.tmac
+.  am URL
+.    ad l
+.  .
+.  am MTO
+.    ad l
+.  .
+.  LINKSTYLE blue R &lt;&gt;
+.\}
+.SH "NAME"
+streamline-find \- search Streamline icon collection
+.SH "SYNOPSIS"
+.sp
+\fBstreamline\-find\fP \fIQUERY...\fP
+.SH "DESCRIPTION"
+.sp
+\fBstreamline\-find\fP searches through the Streamline icon collection and returns matching SVG pathnames with match rankings. Results are ordered by relevance score in descending order.
+.sp
+The tool uses a SQLite search index when available for fast searching. If no index is found, it falls back to filesystem search (consider running \fBstreamline\-index\fP(1) to build the search index for better performance).
+.sp
+The search supports multiple query types:
+.sp
+\fBFilename search\fP
+.RS 4
+Exact filename matches, prefix matches, and partial matches
+.RE
+.sp
+\fBCategory search\fP
+.RS 4
+Search by main categories (plump, core, flex, sharp, ultimate, block, etc.)
+.RE
+.sp
+\fBStyle search\fP
+.RS 4
+Search by visual styles (duo, flat, gradient, solid, etc.) for styled categories
+.RE
+.sp
+\fBSubcategory search\fP
+.RS 4
+Search by functional subcategories (culture, arrows, interface\-essential, etc.)
+.RE
+.SH "OPTIONS"
+.sp
+\fB\-r, \-\-rank\fP
+.RS 4
+Print rank score along with each result.
+.RE
+.sp
+\fB\-f, \-\-full\-path\fP
+.RS 4
+Print full absolute path instead of relative path from data directory.
+.RE
+.sp
+\fB\-o, \-\-or\fP
+.RS 4
+Use OR logic instead of AND for multiple query terms.
+.RE
+.sp
+\fB\-i, \-\-index =\fIFILE\fP\fP
+.RS 4
+Specify the index file to use (default: /var/lib/streamline\-vectors/index.db).
+.RE
+.sp
+\fB\-d, \-\-data\-dir =\fIDIR\fP\fP
+.RS 4
+Specify the icon data directory to use (default: /usr/share/streamline\-vectors).
+.RE
+.sp
+\fB\-q, \-\-quiet\fP
+.RS 4
+Decrease verbosity. Can be used multiple times.
+.RE
+.sp
+\fB\-v, \-\-verbose\fP
+.RS 4
+Increase verbosity. Can be used multiple times.
+.RE
+.sp
+\fB\-h, \-\-help\fP
+.RS 4
+Show help message and exit.
+.RE
+.sp
+\fB\-\-version\fP
+.RS 4
+Show version information and exit.
+.RE
+.sp
+All other arguments are treated as search query terms. By default, multiple terms use AND logic (all terms must match). Use \fB\-o\fP/\fB\-\-or\fP for OR logic (any term must match).
+.SH "ENVIRONMENT"
+.sp
+\fBSTREAMLINE_INDEX\fP
+.RS 4
+Path to the search index database (default: /var/lib/streamline\-vectors/index.db)
+.RE
+.sp
+\fBSTREAMLINE_DATA_DIR\fP
+.RS 4
+Path to the icon data directory (default: /usr/share/streamline\-vectors)
+.RE
+.SH "EXAMPLES"
+.sp
+Search for arrows
+.RS 4
+\fBstreamline\-find arrow\fP
+.RE
+.sp
+Search by category
+.RS 4
+\fBstreamline\-find plump\fP
+.RE
+.sp
+Search by style
+.RS 4
+\fBstreamline\-find duo\fP
+.RE
+.sp
+Search by subcategory
+.RS 4
+\fBstreamline\-find culture\fP
+.RE
+.sp
+Search for specific icon
+.RS 4
+\fBstreamline\-find coffee\fP
+.RE
+.sp
+Search for icons matching both "coffee" AND "bold" (default AND logic)
+.RS 4
+\fBstreamline\-find coffee bold\fP
+.RE
+.sp
+Search for icons matching either "coffee" OR "bold" (OR logic)
+.RS 4
+\fBstreamline\-find \-o coffee bold\fP
+.RE
+.sp
+Show ranking scores
+.RS 4
+\fBstreamline\-find \-r coffee\fP
+.RE
+.sp
+Show full absolute paths
+.RS 4
+\fBstreamline\-find \-f coffee\fP
+.RE
+.sp
+Use custom index file
+.RS 4
+\fBstreamline\-find \-i /path/to/custom/index.db coffee\fP
+.RE
+.sp
+Use custom data directory
+.RS 4
+\fBstreamline\-find \-d /path/to/icons coffee\fP
+.RE
+.SH "FILES"
+.sp
+\fI/var/lib/streamline\-vectors/index.db\fP
+.RS 4
+SQLite search index (built by streamline\-index)
+.RE
+.sp
+\fI/usr/share/streamline\-vectors/\fP
+.RS 4
+Icon data directory
+.RE
+.SH "SEE ALSO"
+.sp
+\fBstreamline\-index\fP(1)
+.SH "AUTHOR"
+.sp
+Lenik (\c
+.MTO "streamline\-find\(atbodz.net" "" ")"
+.SH "LICENSE"
+.sp
+GPL\-3.0+
+.SH "AUTHOR"
+.sp
+{project-author} &lt;{project-email}&gt;
